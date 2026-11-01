@@ -2,4 +2,4 @@ server.crt
 server.key
 .vscode
 reports/
-src/main
+src/client
