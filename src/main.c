@@ -19,6 +19,12 @@ int main() {
 		return 1;
 	}
 
+	// adding my certificae to my client's trusted list
+	if (!SSL_CTX_load_verify_locations(ctx, "/home/diegor/projects/pqcbench/server.crt", NULL)) {
+        printf("Failed to load the trusted certificate\n");
+        return 1;
+}
+
 	if (!SSL_CTX_set_min_proto_version(ctx, TLS1_2_VERSION)) {
 		printf("Failed to set the minimum TLS protocol\n");
 		return 1;
@@ -43,7 +49,7 @@ int main() {
 	BIO_ADDRINFO *res;
 	const BIO_ADDRINFO *ai = NULL;
 
-	if (!BIO_lookup_ex("www.example.com", "443", BIO_LOOKUP_CLIENT, AF_INET, SOCK_STREAM, 0, &res)) {
+	if (!BIO_lookup_ex("localhost", "4433", BIO_LOOKUP_CLIENT, AF_INET, SOCK_STREAM, 0, &res)) {
 		return 1;
 	}
 
@@ -59,6 +65,73 @@ int main() {
 	}
 
 	BIO_ADDRINFO_free(res);
+
+
+	BIO *bio = BIO_new(BIO_s_socket());  // Create a BIO to wrap the socket
+	if (!bio) {
+		BIO_closesocket(sock);
+		return 1;
+	}
+
+	/* 
+	 * Associate the newly created BIO with the underlying socket. By
+	 * passing BIO_CLOSE here the socket will automatically be closed when
+	 * the BIO is freed. Alternatively you can use BIO_NOCLOSE, in which case
+	 * one must close the socket explicitly when it's no longer requied.
+	 */
+	BIO_set_fd(bio, sock, BIO_CLOSE);
+
+	/*
+	 * Associating the bio with the SSL object, as I am gonna use the same
+	 * BIO for reading and writing direction, we pass BIO twice
+	 */
+	SSL_set_bio(ssl, bio, bio);
+
+	// Setting server hostname
+	if (!SSL_set1_host(ssl, "localhost")) {
+		printf("Failed to set the certificate verification hostname\n");
+		return 1;
+	}
+
+	if (!SSL_set_tlsext_host_name(ssl, "localhost")) {
+		printf("Failed to set the SNI hostname\n");
+		return 1;
+	}
+
+	// Performing the handshake and handling errors from it
+	if (SSL_connect(ssl) < 1) {
+		printf("Failed to connect to the server\n");
+		/*
+		 * If the failure is due to a verification error we can get more
+		 * information about it from SSL_get_verify_result()
+		 */
+		if (SSL_get_verify_result(ssl) != X509_V_OK) 
+			printf("Verify error: %s\n", 
+			X509_verify_cert_error_string(SSL_get_verify_result(ssl)));
+		
+		return 1;
+	}
+
+	SSL *ret = SSL_shutdown(ssl);
+	if (ret <= 0) {
+		/*
+		 * ret < 0 indicates an error. ret == 0 would be unexpected here
+		 * because that means "we've sent a close_notify and we're waiting
+		 * for one back". But we already know we got one from the peer 
+		 * because of the SSL_ERROR_ZERO_RETURN above.
+		 */
+		printf("ERROR shutting down\n");
+		return 1;
+	}
+
+	/*
+	 * Free the resources we allocated. We do not free the BIO object here
+	 * because ownership of it was immediately transferred to the SSL object
+	 * via SSL_set_bio(). The BIO will be freed when we free the SSL object
+	 */
+	SSL_free(ssl);
+	SSL_CTX_free(ctx);
+	printf("success");
 
 	return 0;
 }
