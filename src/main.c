@@ -112,18 +112,61 @@ int main() {
 		return 1;
 	}
 
-	SSL *ret = SSL_shutdown(ssl);
+
+	size_t written;
+	const char *request = "GET / HTTP/1.0\r\nConnection: close\r\nHost: localhost\r\n\r\n";
+
+	// Write an HTTP GET request to the peer
+	if (!SSL_write_ex(ssl, request, strlen(request), &written)) {
+		printf("Failed to write start of HTTP request\n");
+		return 1;
+	}
+
+	size_t readbytes;
+	char buf[160];
+	int ret;
+
+
+	/**
+	 * Get up to sizeof(buf) bytes of the response. We keep reading until the
+	 * sever closes the connection
+	 */
+	while (ret = SSL_read_ex(ssl, buf, sizeof(buf), &readbytes)) {
+		
+		/**
+		 * OpenSSL does not guarantee that the returned data is a tring or
+		 * that it is NUL terminated so we use fwrite() to write the exact
+		 * number of bytes that we read. The data could be non-printable or 
+		 * have NUL characters in the middle of it. For this simple example
+		 * we are going to print it to stdout anyway
+		 */
+		fwrite(buf, 1, readbytes, stdout);
+	}
+	printf("\n");
+
+	if (SSL_get_error(ssl, ret) != SSL_ERROR_ZERO_RETURN) {	
+
+		/**
+		 * Some error occurred other than a graceful shutdown by the 
+		 * peer
+		 */
+		printf("Failed reading remaining data\n");
+		return 1;
+	}
+
+	ret = SSL_shutdown(ssl);
 	if (ret <= 0) {
 		/*
-		 * ret < 0 indicates an error. ret == 0 would be unexpected here
-		 * because that means "we've sent a close_notify and we're waiting
-		 * for one back". But we already know we got one from the peer 
-		 * because of the SSL_ERROR_ZERO_RETURN above.
-		 */
+		* ret < 0 indicates an error. ret == 0 would be unexpected here
+		* because that means "we've sent a close_notify and we're waiting
+		* for one back". But we already know we got one from the peer 
+		* because of the SSL_ERROR_ZERO_RETURN above.
+		*/
 		printf("ERROR shutting down\n");
 		return 1;
 	}
 
+	
 	/*
 	 * Free the resources we allocated. We do not free the BIO object here
 	 * because ownership of it was immediately transferred to the SSL object
