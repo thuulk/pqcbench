@@ -5,6 +5,7 @@
 #include <openssl/core_names.h>
 
 
+
 // ECDH p-256 key generation definition
 static EVP_PKEY *gen(void) { return EVP_PKEY_Q_keygen(NULL, NULL, "EC", "P-256"); }
 
@@ -17,7 +18,8 @@ static bool pkey_is_not_null(const EVP_PKEY *pkey, const char *keyname) {
     }
 }
 
-static bool derive_shared_secret(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey, unsigned char secret[32], size_t *lngth) {
+
+bool derive_shared_secret(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey, unsigned char *secret, size_t *lngth) {
     if (!ctx) {
         printf("Failed to allocate the public key algorithm\n");
         EVP_PKEY_CTX_free(ctx);
@@ -90,6 +92,12 @@ static bool print_privkey(BIGNUM *bn_privkey) {
 
     OPENSSL_cleanse(buff, lngth);
     return true;
+}
+
+
+
+static void test_frc() {
+    
 }
 
 
