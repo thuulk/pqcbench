@@ -2,103 +2,12 @@
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include <stdbool.h>
-#include <openssl/core_names.h>
-
-
-
-// ECDH p-256 key generation definition
-static EVP_PKEY *gen(void) { return EVP_PKEY_Q_keygen(NULL, NULL, "EC", "P-256"); }
-
-static bool pkey_is_not_null(const EVP_PKEY *pkey, const char *keyname) {
-    if (!pkey) {
-        printf("pointer '%s' to new key is NULL\n", keyname);
-        return false;
-    } else {
-        return true;
-    }
-}
-
-
-bool derive_shared_secret(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey, unsigned char *secret, size_t *lngth) {
-    if (!ctx) {
-        printf("Failed to allocate the public key algorithm\n");
-        EVP_PKEY_CTX_free(ctx);
-        return false;
-    }
-
-    if (EVP_PKEY_derive_init(ctx) <= 0) {
-        printf("Failed to start deriving shared secret\n");
-        EVP_PKEY_CTX_free(ctx);
-        return false;
-    }
-
-    if (EVP_PKEY_derive_set_peer(ctx, pkey) <= 0){
-        printf("Failed to set the peer end\n");
-        EVP_PKEY_CTX_free(ctx);
-        return false;
-    }
-
-    if (EVP_PKEY_derive(ctx, secret, lngth) <= 0) {
-        printf("Failed to accomplish shared derived secret\n");
-        EVP_PKEY_CTX_free(ctx);
-        return false;
-    }
-
-    EVP_PKEY_CTX_free(ctx);
-    return true;
-}
-
-
-static bool get_encoded_pub_key(EVP_PKEY *pkey) {
-    unsigned char *pubkey;
-    size_t pubkey_len;
-
-    pubkey_len = EVP_PKEY_get1_encoded_public_key(pkey, &pubkey);
-    if (pubkey_len == 0) return false;
-
-    printf("Number of bytes: %zu\nEncoded public key: ", pubkey_len);
-    for (size_t i = 0; i < pubkey_len; i++) printf("%02X", pubkey[i]);
-    printf("\n");
-
-    OPENSSL_free(pubkey);
-    return true;
-}
-
-
-static BIGNUM *get_bn_privkey(EVP_PKEY *pkey) {
-    BIGNUM *bn_privkey = NULL;
-    
-    if (!EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_PRIV_KEY, &bn_privkey)) {
-        printf("Failed to get the private key in format big number\n");
-        return NULL;
-    }
-
-    return bn_privkey;
-}
-
-
-static bool print_privkey(BIGNUM *bn_privkey) {
-    unsigned char buff[32];
-    int lngth = sizeof buff;
-
-    if (BN_bn2binpad(bn_privkey, buff, lngth) < lngth) {
-        printf("error when encoding private key\n");
-        return false;
-    }
-
-    printf("Number of bytes: %i\nEncoded private key: ", lngth);
-    for (int i = 0; i < lngth; i++) printf("%02X", buff[i]);
-    printf("\n");
-
-    OPENSSL_cleanse(buff, lngth);
-    return true;
-}
-
-
-
-static void test_frc() {
-    
-}
+#include "../include/keygen.h"
+#include "../include/pkey_not_null.h"
+#include "../include/derivation.h"
+#include "../include/get_encoded_pub_key.h"
+#include "../include/get_bn_privkey.h"
+#include "../include/print_privkey.h"
 
 
 int main(void) {
