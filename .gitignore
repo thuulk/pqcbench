@@ -1,5 +1,4 @@
-server.crt
-server.key
 .vscode
 reports/
-src/main
+src/ecdh
+src/rfc_5903
