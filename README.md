@@ -7,3 +7,10 @@ Raspberry Pi 4. Characterize both with a repeatable benchmark methodology, compa
 and cryptographic object sizes, and document the classical vs. PQC trade-offs and the
 platform-specific limitations.
 
+
+## Compilation
+Using the GNU C Compiler (gcc), one is to compile a source file using the following flags: 
+gcc -fdiagnostics-color=awlays -g <path-to-file.c> -o <path-to-out-bin> \
+-lssl -lcrypto
+
+Where \ represents a jump in the line
