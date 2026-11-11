@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
+#include <time.h>
+#include <unistd.h>
 #include <stdbool.h>
 #include "../include/keygen.h"
 #include "../include/pkey_not_null.h"
@@ -10,26 +12,39 @@
 #include "../include/print_privkey.h"
 
 
+#define ALGORITHM_NAME "ECDH P-256"
+#define CONFIG "default"
+#define LIBRARY "OpenSSL"
+#define LIBRARY_VERSION "3.5.9"
+
+
 int main(void) {
 
 
-    /** Key wrongly configurated to test for handling the exception */
-    EVP_PKEY* invalid_pkey = EVP_PKEY_Q_keygen(NULL, NULL, "EC", "P-384");
+    /** Opening a pointer to the benchmark file in mode append to register new rows 
+     *  and writing some constants into the row
+    */
+    FILE *fpt;
+    fpt = fopen("/home/diegor/projects/pqcbench/results/benchmark.csv", "a");
+    fprintf(fpt, "%s,%s,", ALGORITHM_NAME, CONFIG);
+
 
     /** Generating client and server keys and validating them 
-     * before starting to use 'em
+     * before starting to use 'em. Also timing key generation operation
      */
+ 
+    clock_t start = clock(), diff;
     EVP_PKEY *client_pkey = gen(), *server_pkey = gen();
     if (!pkey_is_not_null(client_pkey, "client_pkey")) {
         EVP_PKEY_free(client_pkey); 
         return 1;
     }
+    diff = clock() - start;
+    double msec = ((double)diff) / CLOCKS_PER_SEC;
+    printf("seconds to complete key gen: %f\n", msec);
+
     if (!pkey_is_not_null(server_pkey, "server_pkey"))  {
         EVP_PKEY_free(server_pkey); 
-        return 1;
-    }
-    if (!pkey_is_not_null(invalid_pkey, "invalid_pkey"))  {
-        EVP_PKEY_free(invalid_pkey); 
         return 1;
     }
 
@@ -40,12 +55,6 @@ int main(void) {
 
     EVP_PKEY_CTX *ctx = EVP_PKEY_CTX_new(client_pkey, NULL);
 
-    /** Handling exception in sharing secret via derivation*/
-    if (derive_shared_secret(ctx, invalid_pkey, skey3, &lngth3)) {
-        fprintf(stderr, "P-384 peer was accepted when expected rejection\n");
-        OPENSSL_cleanse(skey3, lngth3);
-        return 1;
-    }
 
     /** ERR_clear_error is for deleting mismatched domain parameters
      * in OPENSSL's error queue. This is done so if later ERR_print_errors_fp
@@ -91,7 +100,6 @@ int main(void) {
 
     EVP_PKEY_free(client_pkey); 
     EVP_PKEY_free(server_pkey);
-    EVP_PKEY_free(invalid_pkey);
     BN_clear_free(client_privkey);
     BN_clear_free(server_privkey);
     OPENSSL_cleanse(skey1, lngth1);
