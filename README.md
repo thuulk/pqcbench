@@ -9,5 +9,8 @@ platform-specific limitations.
 
 
 ## Compilation
-Using the GNU C Compiler (gcc), one is to compile a source file using the following flags: \gcc -fdiagnostics-color=awlays -g <path-to-file.c> -o <path-to-out-bin> -lssl -lcrypto -lcjson
+Using the GNU C Compiler (gcc), one is to compile a source file using the following flags: \
+```
+gcc -fdiagnostics-color=always -g <path-to-file.c> -o <path-to-out-bin> -lssl -lcrypto -lcjson
+```
 

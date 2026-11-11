@@ -3,6 +3,7 @@
 #include <openssl/err.h>
 #include <time.h>
 #include <unistd.h>
+#include <cjson/cJSON.h>
 #include <stdbool.h>
 #include "../include/keygen.h"
 #include "../include/pkey_not_null.h"
@@ -10,12 +11,6 @@
 #include "../include/get_encoded_pub_key.h"
 #include "../include/get_bn_privkey.h"
 #include "../include/print_privkey.h"
-
-
-#define ALGORITHM_NAME "ECDH P-256"
-#define CONFIG "default"
-#define LIBRARY "OpenSSL"
-#define LIBRARY_VERSION "3.5.9"
 
 
 int main(void) {
@@ -26,7 +21,37 @@ int main(void) {
     */
     FILE *fpt;
     fpt = fopen("/home/diegor/projects/pqcbench/results/benchmark.csv", "a");
-    fprintf(fpt, "%s,%s,", ALGORITHM_NAME, CONFIG);
+    fprintf(fpt, "%s,%s,%s,", "ECDH P-256", "default", "keygen");
+
+    FILE *jpt = fopen("/home/diegor/projects/pqcbench/results/cache.json", "r");
+    if (!jpt) {
+        printf("Error: could nor open cache.json file\n");
+        return 1;
+    }
+
+    char jbuffer[1024];
+    int jlen = fread(jbuffer, 1, sizeof(jbuffer), jpt);
+    fclose(jpt);
+
+    /** Parse the JSON data */
+    cJSON *json = cJSON_Parse(jbuffer);
+    if (!json) {
+        const char *error_ptr = cJSON_GetErrorPtr();
+        if (error_ptr) printf("Error: %s", error_ptr);
+        cJSON_Delete(json);
+        return 1;
+    }
+
+    /** Access the JSON data */
+    cJSON *name = cJSON_GetObjectItemCaseSensitive(json, "ECDH-P256-KEYGEN-REPETITION");
+    if (cJSON_IsNumber(name)) {
+        printf("Name: %d\n", name->valueint);
+    }
+    fprintf(fpt, "%d,", name->valueint);
+
+
+    // delete the JSON object
+    cJSON_Delete(json);
 
 
     /** Generating client and server keys and validating them 
@@ -42,6 +67,7 @@ int main(void) {
     diff = clock() - start;
     double msec = ((double)diff) / CLOCKS_PER_SEC;
     printf("seconds to complete key gen: %f\n", msec);
+    fprintf(fpt, "%.7f", msec);
 
     if (!pkey_is_not_null(server_pkey, "server_pkey"))  {
         EVP_PKEY_free(server_pkey); 
@@ -50,8 +76,8 @@ int main(void) {
 
     /** Declaring both secrets and a pointer to them len 
       * for later verifying that both sides obtain the same secret */
-    unsigned char skey1[32], skey2[32], skey3[32];
-    size_t lngth1 = sizeof skey1, lngth2 = sizeof skey2, lngth3 = sizeof skey3;
+    unsigned char skey1[32], skey2[32];
+    size_t lngth1 = sizeof skey1, lngth2 = sizeof skey2;
 
     EVP_PKEY_CTX *ctx = EVP_PKEY_CTX_new(client_pkey, NULL);
 
@@ -78,6 +104,8 @@ int main(void) {
         fprintf(stderr, "secrets differ\n");
         return 1;
     }
+
+    fprintf(fpt, "%d,", lngth1);
 
     get_encoded_pub_key(client_pkey);
     get_encoded_pub_key(server_pkey);

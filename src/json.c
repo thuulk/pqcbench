@@ -7,11 +7,11 @@ int main() {
 
     /** Create the json object */
     cJSON *json = cJSON_CreateObject();
-    cJSON_AddNumberToObject(json, "ECDH-P256-KEYGEN-REPETITION", 0);
-    cJSON_AddNumberToObject(json, "ECDH-P256-DERIVATION-REPETITION", 0);
-    cJSON_AddNumberToObject(json, "MLKEN-768-KEYGEN-REPETITION", 0);
-    cJSON_AddNumberToObject(json, "MLKEN-768-ENCAPS-REPETITION", 0);
-    cJSON_AddNumberToObject(json, "MLKEN-768-DECAPS-REPETITION", 0);
+    cJSON_AddNumberToObject(json, "ECDH-P256-KEYGEN-REPETITION", 1);
+    cJSON_AddNumberToObject(json, "ECDH-P256-DERIVATION-REPETITION", 1);
+    cJSON_AddNumberToObject(json, "MLKEN-768-KEYGEN-REPETITION", 1);
+    cJSON_AddNumberToObject(json, "MLKEN-768-ENCAPS-REPETITION", 1);
+    cJSON_AddNumberToObject(json, "MLKEN-768-DECAPS-REPETITION", 1);
 
     /** Convert the cJSON object to a JSON string */
     char *json_str = cJSON_Print(json);
