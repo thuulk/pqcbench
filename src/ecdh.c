@@ -11,47 +11,10 @@
 #include "../include/get_encoded_pub_key.h"
 #include "../include/get_bn_privkey.h"
 #include "../include/print_privkey.h"
+#include "../include/log_benchmark.h"
 
 
 int main(void) {
-
-
-    /** Opening a pointer to the benchmark file in mode append to register new rows 
-     *  and writing some constants into the row
-    */
-    FILE *fpt;
-    fpt = fopen("/home/diegor/projects/pqcbench/results/benchmark.csv", "a");
-    fprintf(fpt, "%s,%s,%s,", "ECDH P-256", "default", "keygen");
-
-    FILE *jpt = fopen("/home/diegor/projects/pqcbench/results/cache.json", "r");
-    if (!jpt) {
-        printf("Error: could nor open cache.json file\n");
-        return 1;
-    }
-
-    char jbuffer[1024];
-    int jlen = fread(jbuffer, 1, sizeof(jbuffer), jpt);
-    fclose(jpt);
-
-    /** Parse the JSON data */
-    cJSON *json = cJSON_Parse(jbuffer);
-    if (!json) {
-        const char *error_ptr = cJSON_GetErrorPtr();
-        if (error_ptr) printf("Error: %s", error_ptr);
-        cJSON_Delete(json);
-        return 1;
-    }
-
-    /** Access the JSON data */
-    cJSON *name = cJSON_GetObjectItemCaseSensitive(json, "ECDH-P256-KEYGEN-REPETITION");
-    if (cJSON_IsNumber(name)) {
-        printf("Name: %d\n", name->valueint);
-    }
-    fprintf(fpt, "%d,", name->valueint);
-
-
-    // delete the JSON object
-    cJSON_Delete(json);
 
 
     /** Generating client and server keys and validating them 
@@ -59,18 +22,32 @@ int main(void) {
      */
  
     clock_t start = clock(), diff;
-    EVP_PKEY *client_pkey = gen(), *server_pkey = gen();
+    EVP_PKEY *client_pkey = gen();
+    diff = clock() - start;
+    double msec = ((double)diff) / CLOCKS_PER_SEC;
+
     if (!pkey_is_not_null(client_pkey, "client_pkey")) {
         EVP_PKEY_free(client_pkey); 
         return 1;
     }
+
+    if (!log_benchmark(msec, ECDH_KEYGEN)) {
+        printf("Error logging operation into benchmark\n");
+        return 1;
+    }
+
+    start = clock();
+    EVP_PKEY *server_pkey = gen();
     diff = clock() - start;
-    double msec = ((double)diff) / CLOCKS_PER_SEC;
-    printf("seconds to complete key gen: %f\n", msec);
-    fprintf(fpt, "%.7f", msec);
+    msec = ((double)diff) / CLOCKS_PER_SEC;
 
     if (!pkey_is_not_null(server_pkey, "server_pkey"))  {
         EVP_PKEY_free(server_pkey); 
+        return 1;
+    }
+
+    if (!log_benchmark(msec, ECDH_KEYGEN)) {
+        printf("Error logging operation into benchmark\n");
         return 1;
     }
 
@@ -80,21 +57,28 @@ int main(void) {
     size_t lngth1 = sizeof skey1, lngth2 = sizeof skey2;
 
     EVP_PKEY_CTX *ctx = EVP_PKEY_CTX_new(client_pkey, NULL);
-
-
-    /** ERR_clear_error is for deleting mismatched domain parameters
-     * in OPENSSL's error queue. This is done so if later ERR_print_errors_fp
-     * is used, it does not show the error on the invalid p-384 peer 
-     * secret exchange */
-    printf("Invalid P-384 peer rejected (expected)\n");
-    ERR_clear_error();
-
-    ctx = EVP_PKEY_CTX_new(client_pkey, NULL);
-
+    
     /** Sharing secret via derivation */
+    start = clock();
     if (!derive_shared_secret(ctx, server_pkey, skey1, &lngth1)) return 1;
+    diff = clock() - start;
+    msec = ((double)diff) / CLOCKS_PER_SEC;
+    if (!log_benchmark(msec, ECDH_DERIVATION)) {
+        printf("Error logging derivation into benchmark\n");
+        return 1;
+    }
+
     ctx = EVP_PKEY_CTX_new(server_pkey, NULL);
+
+    start = clock();
     if (!derive_shared_secret(ctx, client_pkey, skey2, &lngth2)) return 1;
+    diff = clock() - start;
+    msec = ((double)diff) / CLOCKS_PER_SEC;
+    if (!log_benchmark(msec, ECDH_DERIVATION)) {
+        printf("Error logging derivation into benchmark\n");
+        return 1;
+    }
+
 
     /** Verifying that both sides got the same secret */
     int equal = lngth1 == 32 && lngth1 == lngth2 
@@ -105,7 +89,6 @@ int main(void) {
         return 1;
     }
 
-    fprintf(fpt, "%d,", lngth1);
 
     get_encoded_pub_key(client_pkey);
     get_encoded_pub_key(server_pkey);
