@@ -13,7 +13,7 @@ bool derive_shared_secret(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey, unsigned char *secr
     }
 
     if (EVP_PKEY_derive_init(ctx) <= 0) {
-        printf("Failed to start deriving shared secret\n");
+        printf("Failed to   deriving shared secret\n");
         EVP_PKEY_CTX_free(ctx);
         return false;
     }

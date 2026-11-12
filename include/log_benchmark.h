@@ -8,7 +8,7 @@
 #include <openssl/crypto.h>
 
     
-bool log_benchmark(double msec, size_t *len, operation op) {    
+bool log_benchmark(long long t, size_t *len, operation op) {    
 
     
     if (op == ECDH_KEYGEN) {
@@ -53,8 +53,8 @@ bool log_benchmark(double msec, size_t *len, operation op) {
         const char* lib_version = OpenSSL_version(OPENSSL_VERSION_STRING);
 
         
-        fprintf(fpt, "%s,%s,%s,%d,%.7f,%d,%s,%s,%s\n", "ECDH P-256", "default", 
-                "keygen", name->valueint, msec, *(len), "OpenSSL", lib_version, governor);
+        fprintf(fpt, "%s,%s,%s,%d,%lld,%d,%s,%s,%s\n", "ECDH P-256", "default", 
+                "keygen", name->valueint, t, *(len), "OpenSSL", lib_version, governor);
         fclose(fpt);
 
         cJSON_SetNumberValue(name, name->valueint+1);
@@ -112,8 +112,8 @@ bool log_benchmark(double msec, size_t *len, operation op) {
         const char* lib_version = OpenSSL_version(OPENSSL_VERSION_STRING);
 
         
-        fprintf(fpt, "%s,%s,%s,%d,%.7f,%d,%s,%s,%s\n", "ECDH P-256", "default", 
-                "derivation", name->valueint, msec, *(len), "OpenSSL", lib_version, governor);
+        fprintf(fpt, "%s,%s,%s,%d,%lld,%d,%s,%s,%s\n", "ECDH P-256", "default", 
+                "derivation", name->valueint, t, *(len), "OpenSSL", lib_version, governor);
         fclose(fpt);
 
         cJSON_SetNumberValue(name, name->valueint+1);
@@ -169,8 +169,8 @@ bool log_benchmark(double msec, size_t *len, operation op) {
         const char* lib_version = OpenSSL_version(OPENSSL_VERSION_STRING);
 
         
-        fprintf(fpt, "%s,%s,%s,%d,%.7f,%d,%s,%s,%s\n", "ECDH P-256", "default", 
-                "privkey-serialization", name->valueint, msec, *(len), "OpenSSL", lib_version, governor);
+        fprintf(fpt, "%s,%s,%s,%d,%lld,%d,%s,%s,%s\n", "ECDH P-256", "default", 
+                "privkey-serialization", name->valueint, t, *(len), "OpenSSL", lib_version, governor);
         fclose(fpt);
 
         cJSON_SetNumberValue(name, name->valueint+1);

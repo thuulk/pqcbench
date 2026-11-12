@@ -2,8 +2,6 @@
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include <time.h>
-#include <unistd.h>
-#include <cjson/cJSON.h>
 #include <stdbool.h>
 #include "../include/keygen.h"
 #include "../include/pkey_not_null.h"
@@ -12,21 +10,25 @@
 #include "../include/get_bn_privkey.h"
 #include "../include/privkey_serialization.h"
 #include "../include/log_benchmark.h"
+#include "../include/warmup.h"
+#include "../include/sub_timespec.h"
 
 
 int main(void) {
 
-
+    for (int i = 0; i <= 10; i++) warmup();
     /** Generating client and server keys and validating them 
      * before starting to use 'em. Also timing key generation operation,
      * for later logging it into the benchmark
      */
- 
+    
     size_t pubkey_len;
-    clock_t start = clock(), diff;
+    struct timespec start, finish;
+    clock_gettime(CLOCK_MONOTONIC, &start);
     EVP_PKEY *client_pkey = gen();
-    diff = clock() - start;
-    double msec = ((double)diff) / CLOCKS_PER_SEC;
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    long long ns = elapsed_ns(start, finish);
+
 
     if (!pkey_is_not_null(client_pkey, "client_pkey")) {
         EVP_PKEY_free(client_pkey); 
@@ -38,15 +40,15 @@ int main(void) {
         return 1;
     }
 
-    if (!log_benchmark(msec, &pubkey_len, ECDH_KEYGEN)) {
+    if (!log_benchmark(ns, &pubkey_len, ECDH_KEYGEN)) {
         printf("Error logging operation into benchmark\n");
         return 1;
     }
 
-    start = clock();
+    clock_gettime(CLOCK_MONOTONIC, &start);
     EVP_PKEY *server_pkey = gen();
-    diff = clock() - start;
-    msec = ((double)diff) / CLOCKS_PER_SEC;
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    ns = elapsed_ns(start, finish);
 
     if (!pkey_is_not_null(server_pkey, "server_pkey"))  {
         EVP_PKEY_free(server_pkey); 
@@ -58,7 +60,7 @@ int main(void) {
         return 1;
     }
 
-    if (!log_benchmark(msec, &pubkey_len, ECDH_KEYGEN)) {
+    if (!log_benchmark(ns, &pubkey_len, ECDH_KEYGEN)) {
         printf("Error logging operation into benchmark\n");
         return 1;
     }
@@ -74,29 +76,30 @@ int main(void) {
     EVP_PKEY_CTX *ctx = EVP_PKEY_CTX_new(client_pkey, NULL);
     
     /** Sharing secret via derivation */
-    start = clock();
+    clock_gettime(CLOCK_MONOTONIC, &start);
     if (!derive_shared_secret(ctx, server_pkey, skey1, &lngth1)) return 1;
-    diff = clock() - start;
-    msec = ((double)diff) / CLOCKS_PER_SEC;
-    if (!log_benchmark(msec, &lngth1, ECDH_DERIVATION)) {
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    ns = elapsed_ns(start, finish);
+    
+    if (!log_benchmark(ns, &lngth1, ECDH_DERIVATION)) {
         printf("Error logging derivation into benchmark\n");
         return 1;
     }
 
     ctx = EVP_PKEY_CTX_new(server_pkey, NULL);
 
-    start = clock();
+    clock_gettime(CLOCK_MONOTONIC, &start);
     if (!derive_shared_secret(ctx, client_pkey, skey2, &lngth2)) return 1;
-    diff = clock() - start;
-    msec = ((double)diff) / CLOCKS_PER_SEC;
-    if (!log_benchmark(msec, &lngth2, ECDH_DERIVATION)) {
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    ns = elapsed_ns(start, finish);
+    
+    if (!log_benchmark(ns, &lngth2, ECDH_DERIVATION)) {
         printf("Error logging derivation into benchmark\n");
         return 1;
     }
 
-
     /** Verifying that both sides got the same secret */
-    int equal = lngth1 == 32 && lngth1 == lngth2 
+    int equal = lngth1 == 32 && lngth1 == lngth2
                 && CRYPTO_memcmp(skey1, skey2, lngth1) == 0;
     printf("len=%zu equal=%d\n", lngth1, equal);
     if (!equal) {
@@ -119,14 +122,16 @@ int main(void) {
 
     unsigned char privkey_client_buff[32];
     size_t privkey_client_lngth = sizeof privkey_client_buff;
-    start = clock();
+    
+    clock_gettime(CLOCK_MONOTONIC, &start);
     if (!privkey_serialization(client_privkey, privkey_client_buff, &privkey_client_lngth)) {
         printf("Error getting the privkey size in bytes");
         return 1;
     }
-    diff = clock() - start;
-    msec = ((double)diff) / CLOCKS_PER_SEC;
-    if (!log_benchmark(msec, &privkey_client_lngth, ECDH_PRIVKEY_SERIALIZATION)) {
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    ns = elapsed_ns(start, finish);
+   
+    if (!log_benchmark(ns, &privkey_client_lngth, ECDH_PRIVKEY_SERIALIZATION)) {
         printf("Error logging operation into benchmark\n");
         return 1;
     }
@@ -135,12 +140,16 @@ int main(void) {
 
     unsigned char privkey_server_buff[32];
     size_t privkey_server_lngth = sizeof privkey_server_buff;
+     
+    clock_gettime(CLOCK_MONOTONIC, &start);
     if (!privkey_serialization(server_privkey, privkey_server_buff, &privkey_server_lngth)) {
         printf("Error getting the privkey size in bytes");
         return 1;
     }
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    ns = elapsed_ns(start, finish);
 
-    if (!log_benchmark(msec, &privkey_server_lngth, ECDH_PRIVKEY_SERIALIZATION)) {
+    if (!log_benchmark(ns, &privkey_server_lngth, ECDH_PRIVKEY_SERIALIZATION)) {
         printf("Error logging operation into benchmark\n");
         return 1;
     }
@@ -151,9 +160,6 @@ int main(void) {
     BN_clear_free(server_privkey);
     OPENSSL_cleanse(skey1, lngth1);
     OPENSSL_cleanse(skey2, lngth2);
-
-    
-    printf("success\n");
 
     return 0;
 }

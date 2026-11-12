@@ -50,9 +50,11 @@ gcc -fdiagnostics-color=always -g src/json.c -o bin/json -lssl -lcrypto -lcjson
 
 ## 2. Run the ECDH P-256 benchmark (`ecdh.c`)
 
-Generates a key pair for each party, derives the shared secret on both sides and checks that both
-secrets match. Each key generation and each derivation is timed and appended to
-`results/benchmark.csv`.
+Generates a key pair for each party, derives the shared secret on both sides, checks that both
+secrets match and serializes each private key as a raw 32-byte scalar. Before measuring, it runs
+11 warm-up rounds of the same operations without logging them. Each key generation, derivation and
+private-key serialization is then timed with `CLOCK_MONOTONIC` and appended to
+`results/benchmark.csv`, with the time in nanoseconds (`time_ns`).
 ```
 gcc -fdiagnostics-color=always -g src/ecdh.c -o bin/ecdh -lssl -lcrypto -lcjson
 ./bin/ecdh
