@@ -21,6 +21,7 @@ int main(void) {
      * before starting to use 'em. Also timing key generation operation
      */
  
+    size_t pubkey_len;
     clock_t start = clock(), diff;
     EVP_PKEY *client_pkey = gen();
     diff = clock() - start;
@@ -31,7 +32,12 @@ int main(void) {
         return 1;
     }
 
-    if (!log_benchmark(msec, ECDH_KEYGEN)) {
+    if (!get_encoded_pub_key(client_pkey, &pubkey_len)) {
+        printf("Error getting encoded public key");
+        return 1;
+    }
+
+    if (!log_benchmark(msec, &pubkey_len, ECDH_KEYGEN)) {
         printf("Error logging operation into benchmark\n");
         return 1;
     }
@@ -46,7 +52,12 @@ int main(void) {
         return 1;
     }
 
-    if (!log_benchmark(msec, ECDH_KEYGEN)) {
+    if (!get_encoded_pub_key(client_pkey, &pubkey_len)) {
+        printf("Error getting encoded public key");
+        return 1;
+    }
+
+    if (!log_benchmark(msec, &pubkey_len, ECDH_KEYGEN)) {
         printf("Error logging operation into benchmark\n");
         return 1;
     }
@@ -63,7 +74,7 @@ int main(void) {
     if (!derive_shared_secret(ctx, server_pkey, skey1, &lngth1)) return 1;
     diff = clock() - start;
     msec = ((double)diff) / CLOCKS_PER_SEC;
-    if (!log_benchmark(msec, ECDH_DERIVATION)) {
+    if (!log_benchmark(msec, &lngth1, ECDH_DERIVATION)) {
         printf("Error logging derivation into benchmark\n");
         return 1;
     }
@@ -74,7 +85,7 @@ int main(void) {
     if (!derive_shared_secret(ctx, client_pkey, skey2, &lngth2)) return 1;
     diff = clock() - start;
     msec = ((double)diff) / CLOCKS_PER_SEC;
-    if (!log_benchmark(msec, ECDH_DERIVATION)) {
+    if (!log_benchmark(msec, &lngth2, ECDH_DERIVATION)) {
         printf("Error logging derivation into benchmark\n");
         return 1;
     }
@@ -88,10 +99,6 @@ int main(void) {
         fprintf(stderr, "secrets differ\n");
         return 1;
     }
-
-
-    get_encoded_pub_key(client_pkey);
-    get_encoded_pub_key(server_pkey);
     
     //** Generating the private keys as struct BIGNUM */
     BIGNUM *client_privkey = get_bn_privkey(client_pkey);

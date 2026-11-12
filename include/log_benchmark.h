@@ -8,7 +8,7 @@
 #include <openssl/crypto.h>
 
     
-bool log_benchmark(double msec, operation op) {    
+bool log_benchmark(double msec, size_t *len, operation op) {    
 
     
     if (op == ECDH_KEYGEN) {
@@ -54,7 +54,7 @@ bool log_benchmark(double msec, operation op) {
 
         
         fprintf(fpt, "%s,%s,%s,%d,%.7f,%d,%s,%s,%s\n", "ECDH P-256", "default", 
-                "keygen", name->valueint, msec, 65, "OpenSSL", lib_version, governor);
+                "keygen", name->valueint, msec, *(len), "OpenSSL", lib_version, governor);
         fclose(fpt);
 
         cJSON_SetNumberValue(name, name->valueint+1);
@@ -113,7 +113,7 @@ bool log_benchmark(double msec, operation op) {
 
         
         fprintf(fpt, "%s,%s,%s,%d,%.7f,%d,%s,%s,%s\n", "ECDH P-256", "default", 
-                "derivation", name->valueint, msec, 32, "OpenSSL", lib_version, governor);
+                "derivation", name->valueint, msec, *(len), "OpenSSL", lib_version, governor);
         fclose(fpt);
 
         cJSON_SetNumberValue(name, name->valueint+1);
