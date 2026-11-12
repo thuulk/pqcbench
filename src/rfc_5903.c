@@ -114,11 +114,14 @@ int main() {
         return 1;
     }
     if (!derive_shared_secret(final_ctx, pkey_response, skey1, &lngth1)) return 1;
-    if (CRYPTO_memcmp(skey1, out, lngth1) == 0) printf("succes");
+    if (CRYPTO_memcmp(skey1, out, lngth1) != 0) {
+        printf("Derivation wrongly handled\n");
+        return 1;
+    }
 
 
     
-
+    printf("Success\n");
     EVP_PKEY_free(pkey);
     OSSL_PARAM_free(params);
     BN_free(privkey);
