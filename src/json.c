@@ -9,6 +9,7 @@ int main() {
     cJSON *json = cJSON_CreateObject();
     cJSON_AddNumberToObject(json, "ECDH-P256-KEYGEN-REPETITION", 1);
     cJSON_AddNumberToObject(json, "ECDH-P256-DERIVATION-REPETITION", 1);
+    cJSON_AddNumberToObject(json, "ECDH-P256-PRIVKEY-SERIALIZATION-REPETITION", 1);
     cJSON_AddNumberToObject(json, "MLKEN-768-KEYGEN-REPETITION", 1);
     cJSON_AddNumberToObject(json, "MLKEN-768-ENCAPS-REPETITION", 1);
     cJSON_AddNumberToObject(json, "MLKEN-768-DECAPS-REPETITION", 1);

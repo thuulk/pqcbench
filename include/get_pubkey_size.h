@@ -1,12 +1,12 @@
-#ifndef GET_ENCODED_PUB_KEY_H
-#define GET_ENCODED_PUB_KEY_H
+#ifndef GET_PUBKEY_SIZE_H
+#define GET_PUBKEY_SIZE_H
 
 
 #include <openssl/evp.h>
 #include <stdio.h>
 
 
-bool get_encoded_pub_key(EVP_PKEY *pkey, size_t *pubkey_len) {
+bool get_pubkey_size(EVP_PKEY *pkey, size_t *pubkey_len) {
     unsigned char *pubkey;
 
     *(pubkey_len) = EVP_PKEY_get1_encoded_public_key(pkey, &pubkey);

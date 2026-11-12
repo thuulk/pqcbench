@@ -8,9 +8,9 @@
 #include "../include/keygen.h"
 #include "../include/pkey_not_null.h"
 #include "../include/derivation.h"
-#include "../include/get_encoded_pub_key.h"
+#include "../include/get_pubkey_size.h"
 #include "../include/get_bn_privkey.h"
-#include "../include/print_privkey.h"
+#include "../include/privkey_serialization.h"
 #include "../include/log_benchmark.h"
 
 
@@ -18,7 +18,8 @@ int main(void) {
 
 
     /** Generating client and server keys and validating them 
-     * before starting to use 'em. Also timing key generation operation
+     * before starting to use 'em. Also timing key generation operation,
+     * for later logging it into the benchmark
      */
  
     size_t pubkey_len;
@@ -32,7 +33,7 @@ int main(void) {
         return 1;
     }
 
-    if (!get_encoded_pub_key(client_pkey, &pubkey_len)) {
+    if (!get_pubkey_size(client_pkey, &pubkey_len)) {
         printf("Error getting encoded public key");
         return 1;
     }
@@ -52,7 +53,7 @@ int main(void) {
         return 1;
     }
 
-    if (!get_encoded_pub_key(client_pkey, &pubkey_len)) {
+    if (!get_pubkey_size(server_pkey, &pubkey_len)) {
         printf("Error getting encoded public key");
         return 1;
     }
@@ -61,6 +62,9 @@ int main(void) {
         printf("Error logging operation into benchmark\n");
         return 1;
     }
+
+
+
 
     /** Declaring both secrets and a pointer to them len 
       * for later verifying that both sides obtain the same secret */
@@ -113,8 +117,33 @@ int main(void) {
         return 1;
     }
 
-    print_privkey(client_privkey);
-    print_privkey(server_privkey);
+    unsigned char privkey_client_buff[32];
+    size_t privkey_client_lngth = sizeof privkey_client_buff;
+    start = clock();
+    if (!privkey_serialization(client_privkey, privkey_client_buff, &privkey_client_lngth)) {
+        printf("Error getting the privkey size in bytes");
+        return 1;
+    }
+    diff = clock() - start;
+    msec = ((double)diff) / CLOCKS_PER_SEC;
+    if (!log_benchmark(msec, &privkey_client_lngth, ECDH_PRIVKEY_SERIALIZATION)) {
+        printf("Error logging operation into benchmark\n");
+        return 1;
+    }
+    OPENSSL_cleanse(privkey_client_buff, privkey_client_lngth);
+
+
+    unsigned char privkey_server_buff[32];
+    size_t privkey_server_lngth = sizeof privkey_server_buff;
+    if (!privkey_serialization(server_privkey, privkey_server_buff, &privkey_server_lngth)) {
+        printf("Error getting the privkey size in bytes");
+        return 1;
+    }
+
+    if (!log_benchmark(msec, &privkey_server_lngth, ECDH_PRIVKEY_SERIALIZATION)) {
+        printf("Error logging operation into benchmark\n");
+        return 1;
+    }
 
     EVP_PKEY_free(client_pkey); 
     EVP_PKEY_free(server_pkey);
