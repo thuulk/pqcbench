@@ -16,10 +16,10 @@ bool log_benchmark(long long t, size_t *len, operation op) {
          *  and writing some constants into the row
         */
         FILE *fpt;
-        fpt = fopen("/home/diegor/projects/pqcbench/results/benchmark.csv", "a");
+        fpt = fopen("results/benchmark.csv", "a");
 
         /** Opening a pointer to cache file */
-        FILE *jpt = fopen("/home/diegor/projects/pqcbench/results/cache.json", "r");
+        FILE *jpt = fopen("results/cache.json", "r");
         if (!jpt) {
             printf("Error: could nor open cache.json file\n");
             return 1;
@@ -60,7 +60,7 @@ bool log_benchmark(long long t, size_t *len, operation op) {
         cJSON_SetNumberValue(name, name->valueint+1);
         char *json_str = cJSON_Print(json);
 
-        jpt = fopen("/home/diegor/projects/pqcbench/results/cache.json", "w");
+        jpt = fopen("results/cache.json", "w");
 
         printf("%s\n", json_str);
         fputs(json_str, jpt);
@@ -75,10 +75,10 @@ bool log_benchmark(long long t, size_t *len, operation op) {
         *  and writing some constants into the row
         */
         FILE *fpt;
-        fpt = fopen("/home/diegor/projects/pqcbench/results/benchmark.csv", "a");
+        fpt = fopen("results/benchmark.csv", "a");
 
         /** Opening a pointer to cache file */
-        FILE *jpt = fopen("/home/diegor/projects/pqcbench/results/cache.json", "r");
+        FILE *jpt = fopen("results/cache.json", "r");
         if (!jpt) {
             printf("Error: could nor open cache.json file\n");
             return 1;
@@ -119,7 +119,7 @@ bool log_benchmark(long long t, size_t *len, operation op) {
         cJSON_SetNumberValue(name, name->valueint+1);
         char *json_str = cJSON_Print(json);
 
-        jpt = fopen("/home/diegor/projects/pqcbench/results/cache.json", "w");
+        jpt = fopen("results/cache.json", "w");
 
         printf("%s\n", json_str);
         fputs(json_str, jpt);
@@ -132,10 +132,10 @@ bool log_benchmark(long long t, size_t *len, operation op) {
          *  and writing some constants into the row
         */
         FILE *fpt;
-        fpt = fopen("/home/diegor/projects/pqcbench/results/benchmark.csv", "a");
+        fpt = fopen("results/benchmark.csv", "a");
 
         /** Opening a pointer to cache file */
-        FILE *jpt = fopen("/home/diegor/projects/pqcbench/results/cache.json", "r");
+        FILE *jpt = fopen("results/cache.json", "r");
         if (!jpt) {
             printf("Error: could nor open cache.json file\n");
             return 1;
@@ -176,7 +176,7 @@ bool log_benchmark(long long t, size_t *len, operation op) {
         cJSON_SetNumberValue(name, name->valueint+1);
         char *json_str = cJSON_Print(json);
 
-        jpt = fopen("/home/diegor/projects/pqcbench/results/cache.json", "w");
+        jpt = fopen("results/cache.json", "w");
 
         printf("%s\n", json_str);
         fputs(json_str, jpt);

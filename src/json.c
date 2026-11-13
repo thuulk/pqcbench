@@ -18,7 +18,7 @@ int main() {
     char *json_str = cJSON_Print(json);
 
     /** Write the JSON string to a file */
-    FILE *fpt = fopen("/home/diegor/projects/pqcbench/results/cache.json", "w");
+    FILE *fpt = fopen("results/cache.json", "w");
     if (!fpt) {
         printf("Error: unable to open the file.\n");
         return 1;
