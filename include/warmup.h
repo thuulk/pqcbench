@@ -6,7 +6,7 @@
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include <stdbool.h>
-#include "../include/keygen.h"
+#include "../include/ecdh_keygen.h"
 #include "../include/pkey_not_null.h"
 #include "../include/derivation.h"
 #include "../include/get_pubkey_size.h"
@@ -23,7 +23,7 @@ int warmup () {
      */
  
     size_t pubkey_len;
-    EVP_PKEY *client_pkey = gen();
+    EVP_PKEY *client_pkey = ecdh_keygen();
     
 
     if (!pkey_is_not_null(client_pkey, "client_pkey")) {
@@ -36,7 +36,7 @@ int warmup () {
         return 1;
     }
 
-    EVP_PKEY *server_pkey = gen();
+    EVP_PKEY *server_pkey = ecdh_keygen();
     
 
     if (!pkey_is_not_null(server_pkey, "server_pkey"))  {

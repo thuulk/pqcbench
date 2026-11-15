@@ -3,7 +3,7 @@
 #include <openssl/err.h>
 #include <time.h>
 #include <stdbool.h>
-#include "../include/keygen.h"
+#include "../include/ecdh_keygen.h"
 #include "../include/pkey_not_null.h"
 #include "../include/derivation.h"
 #include "../include/get_pubkey_size.h"
@@ -26,7 +26,7 @@ int main(void) {
         size_t pubkey_len;
         struct timespec start, finish;
         clock_gettime(CLOCK_MONOTONIC, &start);
-        EVP_PKEY *client_pkey = gen();
+        EVP_PKEY *client_pkey = ecdh_keygen();
         clock_gettime(CLOCK_MONOTONIC, &finish);
         long long ns = elapsed_ns(start, finish);
 
@@ -47,7 +47,7 @@ int main(void) {
         }
 
         clock_gettime(CLOCK_MONOTONIC, &start);
-        EVP_PKEY *server_pkey = gen();
+        EVP_PKEY *server_pkey = ecdh_keygen();
         clock_gettime(CLOCK_MONOTONIC, &finish);
         ns = elapsed_ns(start, finish);
 
