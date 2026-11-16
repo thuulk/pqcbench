@@ -31,11 +31,8 @@ int main(void) {
         long long ns = elapsed_ns(start, finish);
 
 
-        if (!pkey_is_not_null(client_pkey, "client_pkey")) {
-            EVP_PKEY_free(client_pkey); 
-            return 1;
-        }
-
+        if (!pkey_is_not_null(client_pkey, "client_pkey")) return 1;
+        
         if (!get_pubkey_size(client_pkey, &pubkey_len)) {
             printf("Error getting encoded public key");
             return 1;
@@ -51,10 +48,8 @@ int main(void) {
         clock_gettime(CLOCK_MONOTONIC, &finish);
         ns = elapsed_ns(start, finish);
 
-        if (!pkey_is_not_null(server_pkey, "server_pkey"))  {
-            EVP_PKEY_free(server_pkey); 
-            return 1;
-        }
+        if (!pkey_is_not_null(server_pkey, "server_pkey")) return 1;
+        
 
         if (!get_pubkey_size(server_pkey, &pubkey_len)) {
             printf("Error getting encoded public key");
