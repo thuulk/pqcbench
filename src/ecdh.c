@@ -63,7 +63,6 @@ int main(void) {
 
 
 
-
         /** Declaring both secrets and a pointer to them len 
          * for later verifying that both sides obtain the same secret */
         unsigned char skey1[32], skey2[32];
