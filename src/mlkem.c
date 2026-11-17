@@ -25,7 +25,8 @@ int main (void) {
         return 1;
     }
 
-    if (!log_benchmark(ns, &pubkey_len, MLKEM_KEYGEN)) {
+    if (!log_benchmark(ns, &pubkey_len, "MLKEN-768-KEYGEN-REPETITION",
+        "ML-KEM-768", "keygen")) {
         printf("Error logging operation into benchmark\n");
         return 1;
     }
@@ -74,7 +75,8 @@ int main (void) {
     }
     clock_gettime(CLOCK_MONOTONIC, &finish);
     ns = elapsed_ns(start, finish);
-    if (!log_benchmark(ns, &outlen, MLKEM_ENCAPS)) {
+    if (!log_benchmark(ns, &outlen, "MLKEN-768-ENCAPS-REPETITION",
+        "ML-KEM-768", "encapsulation")) {
         printf("Error logging operation into benchmark\n");
         return 1;
     }
@@ -112,7 +114,8 @@ int main (void) {
     }
     clock_gettime(CLOCK_MONOTONIC, &finish);
     ns = elapsed_ns(start, finish);
-    if (!log_benchmark(ns, &decaps_secretlen, MLKEM_DECAPS)) {
+    if (!log_benchmark(ns, &decaps_secretlen, "MLKEN-768-DECAPS-REPETITION",
+        "ML-KEM-768", "decapsulation")) {
         printf("Error logging operation into benchmark\n");
         return 1;
     }
@@ -138,7 +141,8 @@ int main (void) {
     clock_gettime(CLOCK_MONOTONIC, &finish);
     ns = elapsed_ns(start, finish);
 
-    if (!log_benchmark(ns, &privkeylen, MLKEM_PRIVKEY_SERIALIZATION)) {
+    if (!log_benchmark(ns, &privkeylen, "MLKEN-768-PRIVKEY-SERIALIZATION-REPETITION",
+        "ML-KEM-768", "privkey-serialization")) {
         printf("Error logging operation into benchmark\n");
         return 1;
     }

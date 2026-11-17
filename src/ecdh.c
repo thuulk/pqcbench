@@ -39,7 +39,8 @@ int main(void) {
         return 1;
     }
 
-    if (!log_benchmark(ns, &pubkey_len, ECDH_KEYGEN)) {
+    if (!log_benchmark(ns, &pubkey_len, "ECDH-P256-KEYGEN-REPETITION", 
+        "ECDH P-256", "keygen")) {
         printf("Error logging operation into benchmark\n");
         return 1;
     }
@@ -57,7 +58,8 @@ int main(void) {
         return 1;
     }
 
-    if (!log_benchmark(ns, &pubkey_len, ECDH_KEYGEN)) {
+    if (!log_benchmark(ns, &pubkey_len, "ECDH-P256-KEYGEN-REPETITION", 
+        "ECDH P-256", "keygen")) {
         printf("Error logging operation into benchmark\n");
         return 1;
     }
@@ -76,7 +78,8 @@ int main(void) {
     clock_gettime(CLOCK_MONOTONIC, &finish);
     ns = elapsed_ns(start, finish);
     
-    if (!log_benchmark(ns, &lngth1, ECDH_DERIVATION)) {
+    if (!log_benchmark(ns, &lngth1, "ECDH-P256-DERIVATION-REPETITION",
+        "ECDH P-256", "derivation")) {
         printf("Error logging derivation into benchmark\n");
         return 1;
     }
@@ -87,7 +90,8 @@ int main(void) {
     clock_gettime(CLOCK_MONOTONIC, &finish);
     ns = elapsed_ns(start, finish);
     
-    if (!log_benchmark(ns, &lngth2, ECDH_DERIVATION)) {
+    if (!log_benchmark(ns, &lngth2, "ECDH-P256-DERIVATION-REPETITION",
+        "ECDH P-256", "derivation")) {
         printf("Error logging derivation into benchmark\n");
         return 1;
     }
@@ -104,6 +108,7 @@ int main(void) {
     //** Generating the private keys as struct BIGNUM */
     BIGNUM *client_privkey = get_bn_privkey(client_pkey);
     BIGNUM *server_privkey = get_bn_privkey(server_pkey);
+    
     if (!client_privkey) {
         printf("Private key not successfuly gotten\n");
         return 1;
@@ -125,7 +130,8 @@ int main(void) {
     clock_gettime(CLOCK_MONOTONIC, &finish);
     ns = elapsed_ns(start, finish);
 
-    if (!log_benchmark(ns, &privkey_client_lngth, ECDH_PRIVKEY_SERIALIZATION)) {
+    if (!log_benchmark(ns, &privkey_client_lngth, "ECDH-P256-PRIVKEY-SERIALIZATION-REPETITION",
+        "ECDH P-256", "privkey-serialization")) {
         printf("Error logging operation into benchmark\n");
         return 1;
     }
@@ -143,7 +149,8 @@ int main(void) {
     clock_gettime(CLOCK_MONOTONIC, &finish);
     ns = elapsed_ns(start, finish);
 
-    if (!log_benchmark(ns, &privkey_server_lngth, ECDH_PRIVKEY_SERIALIZATION)) {
+    if (!log_benchmark(ns, &privkey_server_lngth, "ECDH-P256-PRIVKEY-SERIALIZATION-REPETITION",
+        "ECDH P-256", "privkey-serialization")) {
         printf("Error logging operation into benchmark\n");
         return 1;
     }
