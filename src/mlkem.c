@@ -1,24 +1,44 @@
-#include <stdio.h>
 #include "../include/mlkem_keygen.h"
 #include "../include/pkey_not_null.h"
+#include "../include/get_pubkey_size.h"
+#include "../include/sub_timespec.h"
+#include "../include/log_benchmark.h"
+#include "../include/mlkem_warmup.h"
 
 
 int main (void) {
 
+    for (int i = 0; i < 10; i++) mlkem_warmup();
 
+
+    size_t pubkey_len;
+    struct timespec start, finish;
+    clock_gettime(CLOCK_MONOTONIC, &start);
     EVP_PKEY *client_pkey = mlkem_keygen();
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    long long ns = elapsed_ns(start, finish);
+
     if (!pkey_is_not_null(client_pkey, "Client ML-KEM-768")) return 1;
 
-    EVP_PKEY *server_pkey = mlkem_keygen();
-    if (!pkey_is_not_null(server_pkey, "Server ML-KEM-768")) return 1;
+    if (!get_pubkey_size(client_pkey, &pubkey_len)) {
+        printf("Error getting encoded public key");
+        return 1;
+    }
+
+    if (!log_benchmark(ns, &pubkey_len, MLKEM_KEYGEN)) {
+        printf("Error logging operation into benchmark\n");
+        return 1;
+    }
 
 
-    /** out stands for the output of the later EVP_PKEY_encapsulate method where
+    /** ENCAPSULATION OPERATION.
+     *  out stands for the output of the later EVP_PKEY_encapsulate method where
      *  the ciphertext is stored
      */
     unsigned char *out = NULL, *encaps_secret = NULL;
     size_t outlen = 0, encaps_secretlen = 0;
 
+    clock_gettime(CLOCK_MONOTONIC, &start);
     EVP_PKEY_CTX *ctx = EVP_PKEY_CTX_new(client_pkey, NULL);
     if (!ctx) {
         printf("ctx points to null\n");
@@ -52,16 +72,22 @@ int main (void) {
         printf("Encapsulation failed!\n");
         return 1;
     }
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    ns = elapsed_ns(start, finish);
+    if (!log_benchmark(ns, &outlen, MLKEM_ENCAPS)) {
+        printf("Error logging operation into benchmark\n");
+        return 1;
+    }
 
     EVP_PKEY_CTX_free(ctx);
-    ctx = EVP_PKEY_CTX_new(client_pkey, NULL);
 
 
     size_t decaps_secretlen = 0;
     unsigned char *decaps_secret = NULL;
-    
 
 
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    ctx = EVP_PKEY_CTX_new(client_pkey, NULL);
     if (EVP_PKEY_decapsulate_init(ctx, NULL) <= 0) {
         printf("Error intializing decapsulation.\n");
         return 1;
@@ -84,6 +110,12 @@ int main (void) {
         printf("Error while calculating secret length.\n");
         return 1;
     }
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    ns = elapsed_ns(start, finish);
+    if (!log_benchmark(ns, &decaps_secretlen, MLKEM_DECAPS)) {
+        printf("Error logging operation into benchmark\n");
+        return 1;
+    }
   
     /** Verifying that both sides got the same secret */
     int equal = encaps_secretlen == 32 && encaps_secretlen == decaps_secretlen
@@ -93,6 +125,31 @@ int main (void) {
         fprintf(stderr, "secrets differ\n");
         return 1;
     }
+
+    unsigned char privkey_buff[2400];
+    size_t privkeylen = sizeof privkey_buff;
+
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    if (EVP_PKEY_get_raw_private_key(client_pkey, privkey_buff, &privkeylen) <= 0) {
+        printf("Error serializing private key.\n");
+        return 1;
+    }
+
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    ns = elapsed_ns(start, finish);
+
+    if (!log_benchmark(ns, &privkeylen, MLKEM_PRIVKEY_SERIALIZATION)) {
+        printf("Error logging operation into benchmark\n");
+        return 1;
+    }
+
+
+    EVP_PKEY_CTX_free(ctx);
+    EVP_PKEY_free(client_pkey);
+    OPENSSL_clear_free(encaps_secret, encaps_secretlen);
+    OPENSSL_clear_free(decaps_secret, decaps_secretlen);
+    OPENSSL_cleanse(privkey_buff, privkeylen);
+    OPENSSL_free(out);
 
     return 0;
 
