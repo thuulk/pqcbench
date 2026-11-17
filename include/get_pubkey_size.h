@@ -4,6 +4,7 @@
 
 #include <openssl/evp.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 
 bool get_pubkey_size(EVP_PKEY *pkey, size_t *pubkey_len) {

@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 bool get_governor_policy(char *buffer, size_t size) {
 

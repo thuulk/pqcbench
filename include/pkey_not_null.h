@@ -3,6 +3,7 @@
 
 #include <openssl/evp.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 
 bool pkey_is_not_null(EVP_PKEY *pkey, const char *keyname) {

@@ -7,7 +7,7 @@
 #include <cjson/cJSON.h>
 #include <openssl/crypto.h>
 #include <string.h>
-
+#include <stdbool.h>
     
 bool log_benchmark(long long t, size_t *len, unsigned char* json_ob, 
                     unsigned char* algorithm_name, unsigned char* op) {    
