@@ -14,8 +14,8 @@ func fileExists(path string) bool {
 }
 
 
-func main() {
-
+/** Setting up the benchmark dir and files if they are not set already*/
+func setup() {
 	info, err := os.Stat("results")
 	notDir := !(err == nil && info.IsDir()) 
 
@@ -35,7 +35,12 @@ func main() {
 		exec.Command("gcc" ,"-g","src/cache.c","-o","bin/cache","-lssl","-lcrypto","-lcjson").Run()
 		exec.Command("./bin/cache").Run()
 	}
+}
 
+
+func main() {
+
+	setup()
 
 
 	
