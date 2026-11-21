@@ -13,12 +13,18 @@ platform-specific limitations.
 - GNU C Compiler (gcc)
 - OpenSSL 3 development headers (`openssl-devel` on Fedora, `libssl-dev` on Debian / Raspberry Pi OS)
 - cJSON development headers (`cjson-devel` on Fedora, `libcjson-dev` on Debian / Raspberry Pi OS)
-- Python 3 with `pandas`, `numpy` and `matplotlib` (only for the analysis, step 5)
+- Python 3 with `pandas`, `numpy` and `matplotlib` (only to analyze the results with `analysis.py`). On a GNU/Linux
+  system, install them with your system's package manager, not `pip` (on Debian / Raspberry Pi OS,
+  `pip` refuses to install into the system Python with `externally-managed-environment`):
+  ```
+  sudo dnf install python3-pandas python3-numpy python3-matplotlib   # Fedora
+  sudo apt install python3-pandas python3-numpy python3-matplotlib   # Debian / Raspberry Pi OS
+  ```
 - Go (only for the automated setup; `go.mod` asks for 1.26.10)
 
 There are two ways to run the project:
-- **Manual setup:** compile and run each program yourself, following steps 1–5 in order.
-- **Go setup:** let `orchestrator.go` compile and run the programs for you (see the last section).
+- **Manual setup:** compile and run each program yourself, in the order of the numbered sections.
+- **Go setup:** let `orchestrator.go` compile and run all the programs for you with one command.
 
 Every source file is compiled with the same flags:
 ```
@@ -39,7 +45,7 @@ file and erases previous results.**
 
 ### Benchmark files (`benchmark.c`)
 Creates `results/benchmark.csv` with its header row. Every measured operation is appended to this
-file as one row. It also creates `results/runs.csv`, where the runner (step 4) logs one row per
+file as one row. It also creates `results/runs.csv`, where the runner (`runner.c`) logs one row per
 execution of `ecdh` or `mlkem` with the conditions of the system at that moment.
 ```
 gcc -fdiagnostics-color=always -g src/benchmark.c -o bin/benchmark -lssl -lcrypto -lcjson
@@ -63,7 +69,7 @@ secrets match and serializes each private key as a raw 32-byte scalar. Before me
 10 warm-up rounds of the same operations without logging them. Each key generation, derivation and
 private-key serialization is then timed with `CLOCK_MONOTONIC` and appended to
 `results/benchmark.csv`, with the time in nanoseconds (`time_ns`).
-Each execution measures a single round. You don't run it yourself: the runner (step 4) launches it.
+Each execution measures a single round. You don't run it yourself: the runner (`runner.c`) launches it.
 ```
 gcc -fdiagnostics-color=always -g src/ecdh.c -o bin/ecdh -lssl -lcrypto -lcjson
 ```
@@ -76,7 +82,7 @@ the ciphertext with its private key, checks that both secrets match and serializ
 in its raw form. Before measuring, it runs 10 warm-up rounds of the same operations without logging
 them. Key generation, encapsulation, decapsulation and private-key serialization are then timed with
 `CLOCK_MONOTONIC` and appended to `results/benchmark.csv`, with the time in nanoseconds (`time_ns`).
-Each execution measures a single round. You don't run it yourself: the runner (step 4) launches it.
+Each execution measures a single round. You don't run it yourself: the runner (`runner.c`) launches it.
 ```
 gcc -fdiagnostics-color=always -g src/mlkem.c -o bin/mlkem -lssl -lcrypto -lcjson
 ```
@@ -87,7 +93,7 @@ gcc -fdiagnostics-color=always -g src/mlkem.c -o bin/mlkem -lssl -lcrypto -lcjso
 The runner repeats the benchmark 1000 times. In each iteration it launches `bin/ecdh` and then
 `bin/mlkem` as child processes, measures how long each process takes, and reads the SoC
 temperature, the CPU frequency (kHz) and the system load average. Each execution is appended to
-`results/runs.csv`. Compile `ecdh` and `mlkem` (steps 2 and 3) before running it.
+`results/runs.csv`. `bin/ecdh` and `bin/mlkem` must be compiled before running it.
 ```
 gcc -fdiagnostics-color=always -g src/runner.c -o bin/runner -lssl -lcrypto -lcjson
 ./bin/runner
