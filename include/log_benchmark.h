@@ -41,9 +41,6 @@ bool log_benchmark(long long t, size_t *len, unsigned char* json_ob,
 
     /** Access the JSON data */
     cJSON *name = cJSON_GetObjectItemCaseSensitive(json, json_ob);
-    if (cJSON_IsNumber(name)) {
-        printf("Name: %d\n", name->valueint);
-    }
 
     /** Accesing to the system's governor policy for logging it into the benchmark */
     char governor[32];

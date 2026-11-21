@@ -77,12 +77,12 @@ func benchmarking() {
 		run("gcc" ,"-g","src/mlkem.c","-o","bin/mlkem","-lssl","-lcrypto","-lcjson")
 	}
 
+	binPath = "bin/runner"
+	if !fileExists(binPath) {
+		run("gcc" ,"-g","src/mlkem.c","-o","bin/mlkem","-lssl","-lcrypto","-lcjson")
+	}
 
-	
-	binPath = "./bin/ecdh"
-	run(binPath)
 
-	binPath = "./bin/mlkem"
 	run(binPath)
 
 }
@@ -97,5 +97,4 @@ func main() {
 
 	setup()
 	benchmarking()
-
 }

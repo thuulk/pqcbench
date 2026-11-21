@@ -123,7 +123,6 @@ int main (void) {
     /** Verifying that both sides got the same secret */
     int equal = encaps_secretlen == 32 && encaps_secretlen == decaps_secretlen
                 && CRYPTO_memcmp(encaps_secret, decaps_secret, encaps_secretlen) == 0;
-    printf("len=%zu equal=%d\n", encaps_secretlen, equal);
     if (!equal) {
         fprintf(stderr, "secrets differ\n");
         return 1;

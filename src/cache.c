@@ -25,8 +25,6 @@ int main() {
         printf("Error: unable to open the file.\n");
         return 1;
     }
-
-    printf("%s\n", json_str);
     fputs(json_str, fpt);
     fclose;
     

@@ -3,59 +3,18 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <cjson/cJSON.h>
-#include <openssl/crypto.h>
-#include <string.h>
+#include "../include/sub_timespec.h"
+#include "../include/log_run.h"
 
 
 
+int run(char* sub_process_name) {
+    struct timespec start, finish;
+    clock_gettime(CLOCK_MONOTONIC, &start);
 
-
-int main(int argc, char *argv[]) {
-
-    unsigned char *sub_process_name = "bin/ecdh";
-
-    /** Reading the current system temperature */
-    FILE *fpt = fopen("/sys/class/thermal/thermal_zone0/temp", "r");
-    if (!fpt) {
-        printf("Error: unable to open the temp file!\n");
-        return 1;
-    }
-
-    int temp_c;
-    fscanf(fpt, "%d", &temp_c);
-    temp_c /= 1000;
-    printf("temperature: %d° C\n", temp_c);
-    fclose(fpt);
-
-
-    /** Reading the current CPU frecuency in Khz */
-    fpt = fopen("/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq", "r");
-    if (!fpt) {
-        printf("Error: unable to open the freq file!\n");
-        return 1;
-    }
-    int frec_khz;
-    fscanf(fpt, "%d", &frec_khz);
-    printf("Frecuencia: %d khz\n", frec_khz);
-    fclose(fpt);
-
-
-    /** Reading the system load average */
-    fpt = fopen("/proc/loadavg", "r");
-    if (!fpt) {
-        printf("Error: unable to open the loadavg file!\n");
-        return 1;
-    }
-    double loadavg;
-    fscanf(fpt, "%lf", &loadavg);
-    printf("loadavg: %lf\n", frec_khz);
-    fclose(fpt);
-
-
-    /** Reading the exit code of a subprocess (ecdh) */
+    /** Reading the exit code of a subprocess */
+    char *argv[] = { sub_process_name, NULL };
     pid_t process;
-
     process = fork();
 
     if (process < 0)
@@ -75,16 +34,55 @@ int main(int argc, char *argv[]) {
     }
 
     int status;
-    pid_t wait_result;
+    wait(&status);
 
-    while ((wait_result = wait(&status)) != -1) {
-        printf("Process %lu returned result: %d\n", (unsigned long) wait_result, status);
+    /** Reading the current system temperature */
+    FILE *fpt = fopen("/sys/class/thermal/thermal_zone0/temp", "r");
+    if (!fpt) {
+        printf("Error: unable to open the temp file!\n");
+        return 1;
     }
 
-    printf("All children have finished.\n");
+    int temp_c;
+    fscanf(fpt, "%d", &temp_c);
+    temp_c /= 1000;
+    fclose(fpt);
 
 
-   
+    /** Reading the current CPU frecuency in Khz */
+    fpt = fopen("/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq", "r");
+    if (!fpt) {
+        printf("Error: unable to open the freq file!\n");
+        return 1;
+    }
+    int frec_khz;
+    fscanf(fpt, "%d", &frec_khz);
+    fclose(fpt);
+
+
+    /** Reading the system load average */
+    fpt = fopen("/proc/loadavg", "r");
+    if (!fpt) {
+        printf("Error: unable to open the loadavg file!\n");
+        return 1;
+    }
+    double loadavg;
+    fscanf(fpt, "%lf", &loadavg);
+    fclose(fpt);
+
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    long long ns = elapsed_ns(start, finish);
+    log_run(sub_process_name, ns, status, temp_c, frec_khz, loadavg);
+}
+
+
+
+int main(void) {
+    
+    for (__uint16_t i = 0; i < 1000; i++) {
+        run("bin/ecdh");
+        run("bin/mlkem");
+    }
 
     return 0;
 }

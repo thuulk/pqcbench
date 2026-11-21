@@ -14,7 +14,7 @@ int main() {
 
     /** Benchmark of system conditions */
     fpt = fopen("results/runs.csv", "w");
-    fprintf(fpt, "run,binary,time_ns,exit_code,temp_c,frec_khz,load_avg");
+    fprintf(fpt, "run,binary,time_ns,exit_code,temp_c,frec_khz,load_avg\n");
 
     return 0;
 }
