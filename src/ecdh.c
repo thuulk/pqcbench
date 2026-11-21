@@ -99,7 +99,6 @@ int main(void) {
     /** Verifying that both sides got the same secret */
     int equal = lngth1 == 32 && lngth1 == lngth2
                 && CRYPTO_memcmp(skey1, skey2, lngth1) == 0;
-    printf("len=%zu equal=%d\n", lngth1, equal);
     if (!equal) {
         fprintf(stderr, "secrets differ\n");
         return 1;
