@@ -161,7 +161,7 @@ def benchmark_conditions(df: pd.DataFrame, runs: pd.DataFrame) -> None:
     print(runs["temp_c"].agg(["min", "median", "max"]))
     print("frequencies (kHz):", runs["freq_khz"].unique())
 
-    binary = {"ECDH P-256": "./bin/ecdh", "ML-KEM-768": "./bin/mlkem"}
+    binary = {"ECDH P-256": "bin/ecdh", "ML-KEM-768": "bin/mlkem"}
     per_run = {"ECDH P-256": 2, "ML-KEM-768": 1}
     d = df.copy()
     d["binary"] = d["algorithm"].map(binary)

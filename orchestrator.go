@@ -79,7 +79,7 @@ func benchmarking() {
 
 	binPath = "bin/runner"
 	if !fileExists(binPath) {
-		run("gcc" ,"-g","src/mlkem.c","-o","bin/mlkem","-lssl","-lcrypto","-lcjson")
+		run("gcc" ,"-g","src/runner.c","-o","bin/runner","-lssl","-lcrypto","-lcjson")
 	}
 
 
@@ -89,7 +89,7 @@ func benchmarking() {
 
 
 func dataAnalysis() {
-
+	run("python3", "analysis.py")
 }
 
 
@@ -97,4 +97,5 @@ func main() {
 
 	setup()
 	benchmarking()
+	dataAnalysis()
 }
