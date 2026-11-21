@@ -14,6 +14,7 @@ int main() {
     cJSON_AddNumberToObject(json, "MLKEN-768-ENCAPS-REPETITION", 1);
     cJSON_AddNumberToObject(json, "MLKEN-768-DECAPS-REPETITION", 1);
     cJSON_AddNumberToObject(json, "MLKEN-768-PRIVKEY-SERIALIZATION-REPETITION", 1);
+    cJSON_AddNumberToObject(json, "RUNNER-PROCESESS-REPETITION", 1);
 
     /** Convert the cJSON object to a JSON string */
     char *json_str = cJSON_Print(json);
