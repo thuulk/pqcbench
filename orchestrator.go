@@ -2,7 +2,7 @@ package main
 
 import (
 	//"errors"
-	//"log"
+	"log"
 	"os"
 	"os/exec"
 )
@@ -14,14 +14,25 @@ func fileExists(path string) bool {
 }
 
 
+/** Runs a command showing its output, and stops the orchestrator if it fails */
+func run(name string, args ...string) {
+        cmd := exec.Command(name, args...)
+        cmd.Stdout = os.Stdout
+        cmd.Stderr = os.Stderr
+        if err := cmd.Run(); err != nil {
+                log.Fatalf("%s %v: %v", name, args, err)
+        }
+}
+
+
 /** Setting up the benchmark dir and files if they are not set already */
 func setup() {
 	info, err := os.Stat("results")
 	notDir := !(err == nil && info.IsDir()) 
 
 	if notDir {
-		exec.Command("mkdir", "results").Run()
-		exec.Command("mkdir", "results/figs").Run()
+		run("mkdir", "results")
+		run("mkdir", "results/figs")
 	}
 
 
@@ -30,7 +41,7 @@ func setup() {
 	notDir = !(err == nil && info.IsDir()) 
 
 	if notDir {
-		exec.Command("mkdir", "bin").Run()
+		run("mkdir", "bin")
 	}
 	
 
@@ -38,16 +49,16 @@ func setup() {
 	resultPath := "results/benchmark.csv"
 
 	if !fileExists(resultPath) {
-		exec.Command("gcc" ,"-g","src/benchmark.c","-o","bin/benchmark","-lssl","-lcrypto","-lcjson").Run()
-		exec.Command("./bin/benchmark").Run()
+		run("gcc" ,"-g","src/benchmark.c","-o","bin/benchmark","-lssl","-lcrypto","-lcjson")
+		run("./bin/benchmark")
 	}
 
 
 	resultPath = "results/cache.json"
 
 	if !fileExists(resultPath) {
-		exec.Command("gcc" ,"-g","src/cache.c","-o","bin/cache","-lssl","-lcrypto","-lcjson").Run()
-		exec.Command("./bin/cache").Run()
+		run("gcc" ,"-g","src/cache.c","-o","bin/cache","-lssl","-lcrypto","-lcjson")
+		run("./bin/cache")
 	}
 }
 
@@ -57,22 +68,22 @@ func benchmarking() {
 
 	binPath := "bin/ecdh"
 	if !fileExists(binPath) {
-		exec.Command("gcc" ,"-g","src/ecdh.c","-o","bin/ecdh","-lssl","-lcrypto","-lcjson").Run()
+		run("gcc" ,"-g","src/ecdh.c","-o","bin/ecdh","-lssl","-lcrypto","-lcjson")
 	}
 
 
 	binPath = "bin/mlkem"
 	if !fileExists(binPath) {
-		exec.Command("gcc" ,"-g","src/mlkem.c","-o","bin/mlkem","-lssl","-lcrypto","-lcjson").Run()
+		run("gcc" ,"-g","src/mlkem.c","-o","bin/mlkem","-lssl","-lcrypto","-lcjson")
 	}
 
 
 	
 	binPath = "./bin/ecdh"
-	exec.Command(binPath).Run()
+	run(binPath)
 
 	binPath = "./bin/mlkem"
-	exec.Command(binPath).Run()
+	run(binPath)
 
 }
 
