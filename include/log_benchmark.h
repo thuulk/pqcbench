@@ -63,7 +63,6 @@ bool log_benchmark(long long t, size_t *len, unsigned char* json_ob,
 
     jpt = fopen("results/cache.json", "w");
 
-    printf("%s\n", json_str);
     fputs(json_str, jpt);
     fclose(jpt);
 
